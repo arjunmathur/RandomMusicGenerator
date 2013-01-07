@@ -69,90 +69,38 @@ public class RandomMusicGenerator {
 		}
 	}
 	
-	
-	/* Function: Conclusion
-	 * --------------------
-	 * A conclusion message to the user.
-	 */
-	private static void Conclusion(String filePath) {
-		System.out.println();
-		System.out.println("Congratulations! You have composed a new randomly generated abc file.");
-		System.out.println("Your song exists as an abc file at: " + filePath);
-		System.out.println("To convert the song into a MIDI file and sheet music, please visit http://www.mandolintab.net/abcconverter.php");
-	}
-
-	/* Function: GenerateFileHeader
-	 * ----------------------------
-	 * This function generates a FileHeader based on abc notation conventions
-	 * (see abcnotation.com). There are currently a few restrictions on the
-	 * type of song to be exported: It must be in 4/4 time and in C major.
-	 * A more thorough analysis in order to remove these limitations will come
-	 * soon...
-	 */
-	private static void GenerateFileHeader(BufferedWriter output, String songName) throws IOException {
-		output.write("X:1\n");
-		output.write("T:" + songName + '\n');
-		output.write("C:RandomMusicGenerator\n");
-		output.write("M:4/4\n");
-		output.write("L:1/8\n");
-		output.write("Q:1/4=100\n");
-		output.write("K:Cmaj");
-	}
-
-	/* Function: CreateFile
-	 * Usage: StringBuilder sb = new StringBuilder();
-	 * 		  File f = CreateFile(sb);
-	 * ----------------------------------------------
-	 * This file asks for the user to define a song name, and creates
-	 * a File in the current directory with the same name (without any
-	 * reserved pathname characters) with a .abc extension. If a file
-	 * with the requested name already exists, the function will reprompt
-	 * the user. 
+	/*
+	 * Function: GetFile
+	 * Usage: BufferedReader bf = GetFile("Enter a filename: ");
+	 * ----------------------------------------------------------
+	 * Opens a Scanner of a user defined file. The filename
+	 * is obtained from the console using a argument defined prompt
 	 * 
-	 * Besides returning the created File, the user must pass an empty
-	 * StringBuilder as an outparameter for the song name.
+	 * NOTE: It is the caller's responsibility to close the returned BufferedReader
 	 */
-	private static File CreateFile(StringBuilder outSongName) throws IOException {
-		File f; String songName;
+	public static BufferedReader GetFile(String prompt) throws IOException {
 		while(true){
-			songName = ReadLine("What would you like to call your song? ");
-			String cleanName = songName.replaceAll("[<>:\\\"/|?*\\\\]", ""); //remove restricted pathname chars
-			f = new File(cleanName + ".abc"); 
-			if(!f.exists()) break;
-			System.out.println("Sorry, that song name is already taken.");
-		}
-		f.createNewFile();
-		outSongName.append(songName); //return the songname as an outparam
-		return f.getAbsoluteFile();
-	}
-
-	/* Function: GenerateMusic
-	 * -----------------------
-	 * Given a MarkovMap and a seed to start with, this function will
-	 * generate a sequence of abc notation text biased on the probabilities
-	 * given in the MarkovMap. The first key is defined by parameter
-	 * 'firstSeed'. The next key is the Markov transition from the previous key.
-	 * 
-	 * The generation will walk through in this way for NUM_MEASURES measures
-	 * , or until a certain seed contains no mappings.
-	 * 
-	 */
-	private static void GenerateMusic(BufferedWriter output, MarkovMap map, String firstSeed) throws IOException {
-		if(firstSeed == null || map == null || map.isEmpty()) return;
-		
-		String seed = firstSeed;
-		for(int i=0; i<NUM_MEASURES; i++){
-			if(i%6 == 0) output.newLine(); //Add a newline every 6 measures for style
-			for(int j=0; j<WORDS_PER_MEASURE; j++){
-				seed = map.next(seed.replaceAll(NON_ALPHA_REGEX, "")); //Get the next seed based on an alpha-only current seed
-				if(seed == null) return;//If there are no mappings, simply return what we have
-				output.write(seed + " ");
+			String filename = ReadLine(prompt);
+			try {
+				return new BufferedReader(new FileReader(filename));
+			} catch (FileNotFoundException e) {
+				System.out.println("Sorry, we couldn't find that file.");
 			}
-			output.write("| "); //Add a bar delimiter after every measure
-			
 		}
 	}
-
+	
+	/*
+	 * Function: ReadLine
+	 * Usage: String textFromUser = ReadLine("Please enter text")
+	 * ----------------------------------------------------------
+	 * Reads a line of text from the user through the console. 
+	 */
+	public static String ReadLine(String prompt) throws IOException{
+		System.out.print(prompt);
+		BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+		return userInput.readLine();
+		
+	}
 	
 	/* Function: mapAbcFile 
 	 * ------------------
@@ -195,39 +143,92 @@ public class RandomMusicGenerator {
 		    }
 		}
 	}
-
-
-	/*
-	 * Function: GetFile
-	 * Usage: BufferedReader bf = GetFile("Enter a filename: ");
-	 * ----------------------------------------------------------
-	 * Opens a Scanner of a user defined file. The filename
-	 * is obtained from the console using a argument defined prompt
+	
+	/* Function: CreateFile
+	 * Usage: StringBuilder sb = new StringBuilder();
+	 * 		  File f = CreateFile(sb);
+	 * ----------------------------------------------
+	 * This file asks for the user to define a song name, and creates
+	 * a File in the current directory with the same name (without any
+	 * reserved pathname characters) with a .abc extension. If a file
+	 * with the requested name already exists, the function will reprompt
+	 * the user. 
 	 * 
-	 * NOTE: It is the caller's responsibility to close the returned BufferedReader
+	 * Besides returning the created File, the user must pass an empty
+	 * StringBuilder as an outparameter for the song name.
 	 */
-	public static BufferedReader GetFile(String prompt) throws IOException {
+	private static File CreateFile(StringBuilder outSongName) throws IOException {
+		File f; String songName;
 		while(true){
-			String filename = ReadLine(prompt);
-			try {
-				return new BufferedReader(new FileReader(filename));
-			} catch (FileNotFoundException e) {
-				System.out.println("Sorry, we couldn't find that file.");
+			songName = ReadLine("What would you like to call your song? ");
+			String cleanName = songName.replaceAll("[<>:\\\"/|?*\\\\]", ""); //remove restricted pathname chars
+			f = new File(cleanName + ".abc"); 
+			if(!f.exists()) break;
+			System.out.println("Sorry, that song name is already taken.");
+		}
+		f.createNewFile();
+		outSongName.append(songName); //return the songname as an outparam
+		return f.getAbsoluteFile();
+	}
+
+
+	/* Function: GenerateFileHeader
+	 * ----------------------------
+	 * This function generates a FileHeader based on abc notation conventions
+	 * (see abcnotation.com). There are currently a few restrictions on the
+	 * type of song to be exported: It must be in 4/4 time and in C major.
+	 * A more thorough analysis in order to remove these limitations will come
+	 * soon...
+	 */
+	private static void GenerateFileHeader(BufferedWriter output, String songName) throws IOException {
+		output.write("X:1\n");
+		output.write("T:" + songName + '\n');
+		output.write("C:RandomMusicGenerator\n");
+		output.write("M:4/4\n");
+		output.write("L:1/8\n");
+		output.write("Q:1/4=100\n");
+		output.write("K:Cmaj");
+	}
+
+
+
+	/* Function: GenerateMusic
+	 * -----------------------
+	 * Given a MarkovMap and a seed to start with, this function will
+	 * generate a sequence of abc notation text biased on the probabilities
+	 * given in the MarkovMap. The first key is defined by parameter
+	 * 'firstSeed'. The next key is the Markov transition from the previous key.
+	 * 
+	 * The generation will walk through in this way for NUM_MEASURES measures
+	 * , or until a certain seed contains no mappings.
+	 * 
+	 */
+	private static void GenerateMusic(BufferedWriter output, MarkovMap map, String firstSeed) throws IOException {
+		if(firstSeed == null || map == null || map.isEmpty()) return;
+		
+		String seed = firstSeed;
+		for(int i=0; i<NUM_MEASURES; i++){
+			if(i%6 == 0) output.newLine(); //Add a newline every 6 measures for style
+			for(int j=0; j<WORDS_PER_MEASURE; j++){
+				seed = map.next(seed.replaceAll(NON_ALPHA_REGEX, "")); //Get the next seed based on an alpha-only current seed
+				if(seed == null) return;//If there are no mappings, simply return what we have
+				output.write(seed + " ");
 			}
+			output.write("| "); //Add a bar delimiter after every measure
+			
 		}
 	}
 	
-	/*
-	 * Function: ReadLine
-	 * Usage: String textFromUser = ReadLine("Please enter text")
-	 * ----------------------------------------------------------
-	 * Reads a line of text from the user through the console. 
+	
+	/* Function: Conclusion
+	 * --------------------
+	 * A conclusion message to the user.
 	 */
-	public static String ReadLine(String prompt) throws IOException{
-		System.out.print(prompt);
-		BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-		return userInput.readLine();
-		
+	private static void Conclusion(String filePath) {
+		System.out.println();
+		System.out.println("Congratulations! You have composed a new randomly generated abc file.");
+		System.out.println("Your song exists as an abc file at: " + filePath);
+		System.out.println("To convert the song into a MIDI file and sheet music, please visit http://www.mandolintab.net/abcconverter.php");
 	}
 
 }
