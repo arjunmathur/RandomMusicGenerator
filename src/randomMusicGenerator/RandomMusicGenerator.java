@@ -62,6 +62,7 @@ public class RandomMusicGenerator {
 		GenerateMusic(output, map, map.mostCommonSeed());
 		output.close();
 		Conclusion(outFile.getPath());
+		
 		}catch(IOException e){
 			System.out.println(e.getMessage());
 			System.exit(1);
