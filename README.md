@@ -6,7 +6,7 @@ A personal project that can compose music by itself!
 
 The RandomMusicGenerator uses a Markov chain process in order to 'randomly'
 create music in the same style as defined corpus of music! Music is written and read
-in abc notation (abcnotation.com), a text based language that can be used
+in abc notation (www.abcnotation.com), a text based language that can be used
 to express western music. Because of its format, abc notation can easily
 be converted into a MIDI audio file or even sheet music!
 
